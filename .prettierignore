@@ -1,0 +1,6 @@
+node_modules
+build
+release
+.svelte-kit
+electron/dist
+pnpm-lock.yaml

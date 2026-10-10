@@ -1,0 +1,7 @@
+allowBuilds:
+  electron: true
+  esbuild: true
+  node-pty: true
+  dprint: true
+  "@tailwindcss/oxide": true
+  electron-winstaller: false

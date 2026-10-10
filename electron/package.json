@@ -1,0 +1,4 @@
+{
+  "//": "The root package is ESM; the compiled main/preload scripts in electron/dist are CommonJS (sandboxed preloads must be).",
+  "type": "commonjs"
+}

@@ -1,0 +1,8 @@
+node_modules/
+.svelte-kit/
+build/
+out/
+*.log
+.DS_Store
+electron/dist/
+release/
