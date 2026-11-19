@@ -1,7 +1,7 @@
 {
   "name": "lumiere-git",
   "productName": "Lumiere Git",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Graphical repo management tools",
   "homepage": "https://www.lolumi.com/",
   "desktopName": "lumiere-git.desktop",

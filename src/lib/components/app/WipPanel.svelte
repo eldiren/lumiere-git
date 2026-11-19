@@ -3,6 +3,7 @@
   import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
   import UndoIcon from "@lucide/svelte/icons/undo-2";
   import GitCommitIcon from "@lucide/svelte/icons/git-commit-horizontal";
+  import FolderOpenIcon from "@lucide/svelte/icons/folder-open";
   import TriangleAlertIcon from "@lucide/svelte/icons/triangle-alert";
   import { Button } from "$lib/components/ui/button";
   import { Checkbox } from "$lib/components/ui/checkbox";
@@ -133,6 +134,12 @@
   // Files the open context menu applies to (set by FileList's oncontext).
   let unstagedMenu = $state<FileChange[]>([]);
   let stagedMenu = $state<FileChange[]>([]);
+  let conflictedMenu = $state<FileChange[]>([]);
+  // Set when the menu was opened on a tree folder rather than on files.
+  let menuFolder = $state<string | null>(null);
+  /** What "Reveal" applies to: the folder, or the single file (hidden for multi-selections). */
+  const revealTarget = (files: FileChange[]) =>
+    menuFolder ?? (files.length === 1 ? files[0].path : null);
   // Right-clicking empty space in a list shouldn't open an empty menu.
   // Reads the list lazily: FileList's handler fills it earlier in the same bubbling event.
   const skipEmpty = (files: () => FileChange[]) => (e: MouseEvent) => {
@@ -147,6 +154,19 @@
     bisecting: "Bisect in progress",
   };
 </script>
+
+{#snippet revealItem(files: FileChange[], separator = true)}
+  {@const target = revealTarget(files)}
+  {#if target !== null}
+    {#if separator}<ContextMenu.Separator />{/if}
+    <ContextMenu.Item
+      onclick={() => actions.revealInFileBrowser(repo, target)}
+    >
+      <FolderOpenIcon class="size-4" />
+      {actions.fileBrowserLabel}
+    </ContextMenu.Item>
+  {/if}
+{/snippet}
 
 {#snippet sectionHeader(
   label: string,
@@ -244,11 +264,19 @@
           >
             Conflicted Files ({st.conflicted.length})
           </div>
-          <div class="min-h-0 overflow-auto">
+          <ContextMenu.Root onOpenChange={(o) => !o && (conflictedMenu = [])}>
+            <ContextMenu.Trigger
+              class="min-h-0 overflow-auto"
+              oncontextmenu={skipEmpty(() => conflictedMenu)}
+            >
             <FileList
               files={st.conflicted}
               mode={repo.fileView}
               selected={selectedPath}
+              oncontext={(files, _e, folder) => (
+                (menuFolder = folder ?? null),
+                (conflictedMenu = files)
+              )}
               onselect={(f) => repo.openDiff({ kind: "unstaged" }, f)}
             >
               {#snippet actions(f)}
@@ -262,7 +290,11 @@
                 >
               {/snippet}
             </FileList>
-          </div>
+            </ContextMenu.Trigger>
+            <ContextMenu.Content class="w-56">
+              {@render revealItem(conflictedMenu, false)}
+            </ContextMenu.Content>
+          </ContextMenu.Root>
         </section>
       {/if}
 
@@ -300,8 +332,9 @@
                 mode={repo.fileView}
                 selected={selectedPath}
                 bind:selection={unstagedSel}
-                oncontext={(files) => (
+                oncontext={(files, _e, folder) => (
                   (stagedSel = new Set()),
+                  (menuFolder = folder ?? null),
                   (unstagedMenu = files)
                 )}
                 onselect={(f) => (
@@ -342,6 +375,7 @@
                   ? "File"
                   : plural(unstagedMenu.length)}
               </ContextMenu.Item>
+              {@render revealItem(unstagedMenu)}
               <ContextMenu.Separator />
               <ContextMenu.Item
                 variant="destructive"
@@ -390,8 +424,9 @@
                 mode={repo.fileView}
                 selected={selectedPath}
                 bind:selection={stagedSel}
-                oncontext={(files) => (
+                oncontext={(files, _e, folder) => (
                   (unstagedSel = new Set()),
+                  (menuFolder = folder ?? null),
                   (stagedMenu = files)
                 )}
                 onselect={(f) => (
@@ -424,6 +459,7 @@
                   ? "File"
                   : plural(stagedMenu.length)}
               </ContextMenu.Item>
+              {@render revealItem(stagedMenu)}
             </ContextMenu.Content>
           </ContextMenu.Root>
         {/if}

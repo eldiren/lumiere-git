@@ -11,8 +11,8 @@
     mode: "path" | "tree";
     selected?: string | null;
     onselect?: (f: FileChange) => void;
-    /** Right-click on a file or folder. Receives the files it applies to: the whole selection when the file is part of it, otherwise just that file (or every file under the folder), which then becomes the selection. */
-    oncontext?: (files: FileChange[], e: MouseEvent) => void;
+    /** Right-click on a file or folder. Receives the files it applies to: the whole selection when the file is part of it, otherwise just that file (or every file under the folder), which then becomes the selection. `folder` is the folder's path when a tree folder was right-clicked. */
+    oncontext?: (files: FileChange[], e: MouseEvent, folder?: string) => void;
     actions?: Snippet<[FileChange]>;
     showStats?: boolean;
     /** Multi-selection (paths). When bound, Ctrl/Cmd-click toggles a file and Shift-click selects a range. */
@@ -135,10 +135,10 @@
     onselect?.(f);
   }
 
-  function context(targets: FileChange[], e: MouseEvent) {
+  function context(targets: FileChange[], e: MouseEvent, folder?: string) {
     if (!oncontext) return;
     if (selection) selection = new Set(targets.map((t) => t.path));
-    oncontext(targets, e);
+    oncontext(targets, e, folder);
   }
 
   function fileContext(f: FileChange, e: MouseEvent) {
@@ -219,7 +219,7 @@
         role="button"
         tabindex="-1"
         onclick={() => toggle(c.path)}
-        oncontextmenu={(e) => context(filesUnder(c), e)}
+        oncontextmenu={(e) => context(filesUnder(c), e, c.path)}
         onkeydown={(e) => e.key === "Enter" && toggle(c.path)}
       >
         <ChevronRightIcon

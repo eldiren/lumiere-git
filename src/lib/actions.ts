@@ -3,6 +3,7 @@ import { toast } from "svelte-sonner";
 import type { RepoTab } from "$lib/stores/repo.svelte";
 import { appState } from "$lib/stores/app.svelte";
 import { dialogs, validateRefName } from "$lib/stores/dialogs.svelte";
+import { app as appApi } from "$lib/api";
 import type { PullMode, Ref, ResetMode } from "$shared/types";
 
 const short = (h: string) => h.slice(0, 7);
@@ -405,6 +406,25 @@ export async function submitRemote(
   if (v.fetch)
     await repo.run(`Fetch ${name}`, (api) => api.fetch({ remote: name }));
   return true;
+}
+
+/** Context-menu label for revealing a path in the OS file browser. */
+export const fileBrowserLabel = (() => {
+  const p = typeof window !== "undefined" ? window.lumiere?.platform : "";
+  return p === "darwin"
+    ? "Reveal in Finder"
+    : p === "win32"
+      ? "Show in Explorer"
+      : "Open in File Browser";
+})();
+
+/** Reveal a repo-relative file or folder in the OS file browser. */
+export async function revealInFileBrowser(repo: RepoTab, rel: string) {
+  try {
+    await appApi.showInFolder(rel ? `${repo.root}/${rel}` : repo.root);
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : String(e));
+  }
 }
 
 export async function copyText(text: string, what = "Copied") {

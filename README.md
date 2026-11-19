@@ -1,10 +1,11 @@
 # Lumiere Git
+
 Lumiere Git is a desktop visual Git client.
 
 # Build and test
 
 ```bash
-pnpm start:electron   # Test Electron with Vite dev server 
+pnpm start:electron   # Test Electron with Vite dev server
 pnpm dev:electron     # recompile electron/ and relaunch Electron against the running dev server
 pnpm make:electron    # build both + electron-builder → release/
 pnpm make:flatpak     # build both + a single-file Flatpak bundle → release/
@@ -18,7 +19,7 @@ installs the runtime it needs (`org.freedesktop.Sdk//25.08` and
 `org.electronjs.Electron2.BaseApp//25.08`) for the current user.
 
 ```bash
-flatpak install --user "release/Lumiere Git-0.0.1-x86_64.flatpak"
+flatpak install --user "release/Lumiere Git-0.0.2-x86_64.flatpak"
 flatpak run com.lolumi.lumieregit
 ```
 

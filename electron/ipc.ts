@@ -263,7 +263,16 @@ export function registerIpc(
   });
   ipcMain.handle(
     "app:showInFolder",
-    wrap((p: string) => shell.showItemInFolder(p)),
+    wrap(async (p: string) => {
+      // A deleted or not-yet-checked-out file has nothing to select, so open
+      // its nearest existing parent folder instead.
+      let target = path.resolve(p);
+      if (fs.existsSync(target)) return shell.showItemInFolder(target);
+      while (!fs.existsSync(target) && path.dirname(target) !== target)
+        target = path.dirname(target);
+      const err = await shell.openPath(target);
+      if (err) throw new Error(err);
+    }),
   );
 
   ipcMain.handle("repo:open", async (e, dir: string) => {

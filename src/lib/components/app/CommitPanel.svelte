@@ -3,7 +3,13 @@
   import CopyIcon from "@lucide/svelte/icons/copy";
   import { Button } from "$lib/components/ui/button";
   import { WIP, type RepoTab } from "$lib/stores/repo.svelte";
-  import { copyText } from "$lib/actions";
+  import FolderOpenIcon from "@lucide/svelte/icons/folder-open";
+  import * as ContextMenu from "$lib/components/ui/context-menu";
+  import {
+    copyText,
+    fileBrowserLabel,
+    revealInFileBrowser,
+  } from "$lib/actions";
   import Avatar from "./Avatar.svelte";
   import FileList from "./FileList.svelte";
   import ViewToggle from "./ViewToggle.svelte";
@@ -22,6 +28,9 @@
     }
     return out;
   });
+  // Repo-relative path the open context menu reveals (a file, or a tree folder).
+  let menuPath = $state<string | null>(null);
+
   const stashItem = $derived.by(() => {
     const it = repo.items[repo.indexByHash.get(repo.selected ?? "") ?? -1];
     return it?.kind === "stash" ? it.stash : null;
@@ -115,10 +124,16 @@
         <ViewToggle bind:value={repo.fileView} />
       </div>
 
-      <div class="-mx-3">
+      <ContextMenu.Root onOpenChange={(o) => !o && (menuPath = null)}>
+        <ContextMenu.Trigger
+          class="-mx-3 block"
+          oncontextmenu={(e) => menuPath === null && e.preventDefault()}
+        >
         <FileList
           files={detail.files}
           mode={repo.fileView}
+          oncontext={(files, _e, folder) =>
+            (menuPath = folder ?? files[0]?.path ?? null)}
           showStats
           selected={repo.diff?.source.kind === "commit"
             ? repo.diff.file.path
@@ -129,7 +144,16 @@
               f,
             )}
         />
-      </div>
+        </ContextMenu.Trigger>
+        <ContextMenu.Content class="w-56">
+          <ContextMenu.Item
+            onclick={() => menuPath !== null && revealInFileBrowser(repo, menuPath)}
+          >
+            <FolderOpenIcon class="size-4" />
+            {fileBrowserLabel}
+          </ContextMenu.Item>
+        </ContextMenu.Content>
+      </ContextMenu.Root>
     </div>
   {:else}
     <div

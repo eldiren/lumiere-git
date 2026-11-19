@@ -68,5 +68,5 @@
         ></span>{/if}
     </button>
   {/if}
-  <span>Lumiere Git 0.0.1</span>
+  <span>Lumiere Git 0.0.2</span>
 </div>
